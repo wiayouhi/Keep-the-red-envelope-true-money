@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Center | {{ user.username }}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'Kanit', 'sans-serif'],
+                        mono: ['Consolas', 'Monaco', 'Courier New', 'monospace'],
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'spin-slow': 'spin 12s linear infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050505;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Background Effects */
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1;
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(20, 20, 30, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .glass-panel:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+        }
+
+        /* Inputs */
+        .tech-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transition: all 0.3s;
+        }
+        .tech-input:focus {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.05);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Table */
+        .tech-table thead tr { background: rgba(255, 255, 255, 0.02); }
+        .tech-table tbody tr { transition: background 0.2s; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .tech-table tbody tr:hover { background: rgba(255, 255, 255, 0.05); }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="min-h-screen pb-20 relative selection:bg-violet-500 selection:text-white">
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-[-2]">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/20 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-600/20 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+    </div>
+    <div class="bg-grid"></div>
+
+    <nav class="fixed w-full z-50 top-0 px-4 py-4">
+        <div class="max-w-7xl mx-auto glass rounded-2xl px-6 py-3 flex justify-between items-center border-white/10" data-aos="fade-down">
+            <div class="flex items-center gap-4">
+                <div class="relative w-10 h-10">
+                    <div class="absolute inset-0 bg-violet-600 rounded-xl blur opacity-60"></div>
+                    <div class="relative w-full h-full rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg">TM</div>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-none tracking-wide text-white">TRUE PRO</h1>
+                    <div class="flex items-center gap-1.5 mt-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-mono">SYSTEM ONLINE</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-3 bg-black/20 px-4 py-1.5 rounded-full border border-white/5 backdrop-blur-sm">
+                    <img src="{{ user.avatar_url }}" class="w-8 h-8 rounded-full ring-2 ring-violet-500/30">
+                    <span class="text-sm font-medium text-gray-300 pr-2">{{ user.username }}</span>
+                </div>
+                <a href="/logout" class="group relative w-10 h-10 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all overflow-hidden">
+                    <div class="absolute inset-0 bg-red-500 blur opacity-0 group-hover:opacity-40 transition"></div>
+                    <i class="fas fa-power-off relative z-10"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 pt-28 space-y-8 relative z-10">
+        
+        <div class="flex flex-col md:flex-row justify-between items-end gap-4" data-aos="fade-right">
+            <div>
+                <p class="text-violet-400 font-mono text-sm mb-1">COMMAND CENTER v2.0</p>
+                <h2 class="text-4xl md:text-5xl font-bold text-white tracking-tight">
+                    Welcome, <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400">{{ user.username }}</span>
+                </h2>
+            </div>
+            <div class="text-right hidden md:block">
+                <p class="text-gray-500 text-sm">Server Time</p>
+                <p class="text-xl font-mono text-gray-300" id="clock">00:00:00</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group" data-tilt data-tilt-max="5" data-tilt-glare data-tilt-max-glare="0.2" data-aos="fade-up" data-aos-delay="100">
+                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition transform group-hover:scale-110">
+                    <i class="fas fa-wallet text-9xl text-emerald-500"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Revenue</p>
+                    </div>
+                    <h3 class="text-5xl font-bold text-white tracking-tight mb-1">
+                        ฿<span class="counter" data-target="{{ total_amount }}">0</span>
+                    </h3>
+                    <p class="text-emerald-400 text-xs flex items-center gap-1 mt-2">
+                        <i class="fas fa-arrow-up"></i> Updated just now
+                    </p>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group" data-tilt data-tilt-max="5" data-tilt-glare data-tilt-max-glare="0.2" data-aos="fade-up" data-aos-delay="200">
+                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition transform group-hover:scale-110">
+                    <i class="fas fa-chart-line text-9xl text-blue-500"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Transactions</p>
+                    </div>
+                    <h3 class="text-5xl font-bold text-white tracking-tight mb-1">
+                        <span class="counter" data-target="{{ total_tx }}">0</span>
+                    </h3>
+                    <p class="text-blue-400 text-xs flex items-center gap-1 mt-2">
+                        <i class="fas fa-check-circle"></i> Successful items
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel p-1 rounded-3xl bg-gradient-to-r from-violet-500/20 via-transparent to-transparent" data-aos="fade-up" data-aos-delay="300">
+            <div class="bg-[#0a0a12] rounded-[22px] p-6 md:p-8 relative overflow-hidden">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                    <div class="flex-1 w-full">
+                        <label class="text-xs font-bold text-violet-400 uppercase tracking-widest mb-3 block">
+                            <i class="fas fa-key mr-2"></i> Your Secret Webhook Endpoint
+                        </label>
+                        <div class="relative group">
+                            <input type="text" id="apiInput" readonly value="{{ base_url }}/{{ user.api_key }}/redeem" 
+                                class="w-full bg-black/50 border border-violet-500/30 rounded-xl px-5 py-4 font-mono text-sm text-gray-300 outline-none pr-14 focus:border-violet-500 transition-colors shadow-inner">
+                            <button onclick="copyApi()" class="absolute right-2 top-2 bottom-2 w-10 rounded-lg bg-violet-600/20 text-violet-400 hover:bg-violet-600 hover:text-white transition flex items-center justify-center">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 w-full md:w-auto">
+                        <button onclick="copyApi()" class="flex-1 md:flex-none bg-white text-black hover:bg-gray-200 px-6 py-3.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-white/20 active:scale-95">
+                            Copy Link
+                        </button>
+                        <form action="/reset_key" method="POST" id="resetKeyForm" class="flex-1 md:flex-none">
+                            <button type="button" onclick="confirmReset()" class="w-full bg-gray-800 hover:bg-red-500/10 hover:text-red-400 border border-gray-700 hover:border-red-500/50 text-gray-300 px-6 py-3.5 rounded-xl font-medium transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-sync-alt"></i> Reset
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-2 glass-panel rounded-3xl overflow-hidden flex flex-col h-[500px]" data-aos="fade-up" data-aos-delay="400">
+                <div class="px-6 py-5 border-b border-white/5 flex justify-between items-center bg-white/05">
+                    <h3 class="font-bold text-white flex items-center gap-2">
+                        <i class="fas fa-stream text-gray-500"></i> Live Feed
+                    </h3>
+                    <div class="flex gap-1">
+                        <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                        <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    </div>
+                </div>
+                <div class="overflow-y-auto flex-1 custom-scroll">
+                    <table class="w-full text-left tech-table">
+                        <thead class="sticky top-0 bg-[#13131f] backdrop-blur-md z-10 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4">Time</th>
+                                <th class="px-6 py-4">Phone</th>
+                                <th class="px-6 py-4">Amount</th>
+                                <th class="px-6 py-4 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm font-mono">
+                            {% for tx in txs %}
+                            <tr>
+                                <td class="px-6 py-4 text-gray-500">{{ tx.timestamp }}</td>
+                                <td class="px-6 py-4 text-gray-300">{{ tx.phone_number }}</td>
+                                <td class="px-6 py-4 font-bold text-emerald-400">+{{ "{:,.2f}".format(tx.amount) }}</td>
+                                <td class="px-6 py-4 text-right">
+                                    {% if tx.status == 'SUCCESS' %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                        SUCCESS
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20">
+                                        FAILED
+                                    </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-20 text-center">
+                                    <div class="flex flex-col items-center justify-center opacity-30">
+                                        <i class="fas fa-inbox text-4xl mb-3"></i>
+                                        <p>No transaction data available</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-3xl h-fit" data-aos="fade-left" data-aos-delay="500">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 animate-pulse-slow">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <h3 class="font-bold text-white">System Config</h3>
+                </div>
+
+                <form action="/update_notify" method="POST" class="space-y-6" id="notifyForm">
+                    <div class="group">
+                        <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 block flex items-center justify-between">
+                            <span><i class="fab fa-discord text-indigo-400 mr-1"></i> Discord Webhook</span>
+                            <span class="opacity-0 group-hover:opacity-100 transition text-indigo-400 text-[10px]">Required</span>
+                        </label>
+                        <input type="text" name="webhook_url" id="webhook_url" value="{{ user.webhook_url or '' }}" 
+                            placeholder="https://discord.com/api/webhooks/..." 
+                            class="w-full tech-input rounded-xl px-4 py-3 text-sm outline-none placeholder-gray-600 font-mono">
+                    </div>
+                    
+                    <div class="group">
+                        <div class="flex justify-between items-end mb-2">
+                            <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center">
+                                <i class="fab fa-line text-green-400 mr-1"></i> LINE User ID
+                            </label>
+                            
+                            <button type="button" onclick="showLineQR()" class="text-[10px] bg-[#06c755]/10 text-[#06c755] border border-[#06c755]/20 px-2 py-1 rounded hover:bg-[#06c755] hover:text-white transition-all flex items-center gap-1 active:scale-95">
+                                <i class="fas fa-qrcode"></i> Scan Bot
+                            </button>
+                        </div>
+
+                        <input type="text" name="line_token" id="line_token" value="{{ user.line_token or '' }}" 
+                            placeholder="Uxxxxxxxxxxxxxxxx..." 
+                            class="w-full tech-input rounded-xl px-4 py-3 text-sm outline-none placeholder-gray-600 font-mono">
+                        
+                        <p class="mt-2 text-[10px] text-gray-500 leading-relaxed pl-1 border-l-2 border-gray-700">
+                            * แอดไลน์บอท สแกน QR ด้านบน<br>
+                            * พิมพ์คำสั่ง <span class="text-green-400 font-mono">/id</span> เพื่อรับ User ID
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
+                        <button type="button" onclick="testNotify()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-3 rounded-xl transition-all border border-gray-700 active:scale-95 flex items-center justify-center gap-2 group">
+                            <i class="fas fa-paper-plane group-hover:translate-x-1 transition-transform"></i> Test
+                        </button>
+                        <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Init Animations
+        AOS.init({ duration: 800, once: true, offset: 50 });
+
+        // Initialize Tilt
+        VanillaTilt.init(document.querySelectorAll(".glass-panel"), {
+            max: 3,
+            speed: 400,
+            glare: true,
+            "max-glare": 0.05,
+        });
+
+        // Real-time Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH');
+        }, 1000);
+
+        // Copy API Function
+        function copyApi() {
+            const copyText = document.getElementById("apiInput");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(copyText.value);
+            
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            })
+
+            Toast.fire({
+                icon: 'success',
+                title: 'Copied to clipboard',
+                background: '#1e1e2d',
+                color: '#fff'
+            })
+        }
+
+        // Reset Key Confirmation
+        function confirmReset() {
+            Swal.fire({
+                title: 'Generate New Key?',
+                text: "The old URL will stop working immediately.",
+                icon: 'warning',
+                background: '#0f172a',
+                color: '#fff',
+                showCancelButton: true,
+                confirmButtonColor: '#8b5cf6',
+                cancelButtonColor: '#334155',
+                confirmButtonText: 'Yes, Reset',
+                customClass: {
+                    popup: 'border border-gray-700 rounded-2xl'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('resetKeyForm').submit();
+                }
+            })
+        }
+
+        // Test Notification
+        async function testNotify() {
+            const webhook = document.getElementById('webhook_url').value;
+            const line = document.getElementById('line_token').value;
+            
+            Swal.fire({
+                title: 'Sending Test...',
+                didOpen: () => { Swal.showLoading() },
+                background: '#0f172a',
+                color: '#fff',
+                allowOutsideClick: false,
+                customClass: { popup: 'border border-gray-700 rounded-2xl' }
+            });
+
+            const formData = new FormData();
+            formData.append('webhook_url', webhook);
+            formData.append('line_token', line);
+
+            try {
+                const response = await fetch('/test_notify', { method: 'POST', body: formData });
+                const result = await response.json();
+                
+                Swal.fire({
+                    icon: result.status === 'success' ? 'success' : 'error',
+                    title: result.status === 'success' ? 'Sent Successfully' : 'Failed to Send',
+                    text: result.message,
+                    background: '#0f172a',
+                    color: '#fff',
+                    confirmButtonColor: '#8b5cf6',
+                    customClass: { popup: 'border border-gray-700 rounded-2xl' }
+                });
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Network Error', background: '#0f172a', color: '#fff' });
+            }
+        }
+
+        // Number Counter Animation
+        const counters = document.querySelectorAll('.counter');
+        counters.forEach(counter => {
+            const updateCount = () => {
+                const target = +counter.getAttribute('data-target');
+                const count = +counter.innerText.replace(/,/g, '');
+                const increment = target / 100;
+
+                if (count < target) {
+                    counter.innerText = Math.ceil(count + increment).toLocaleString();
+                    setTimeout(updateCount, 10);
+                } else {
+                    counter.innerText = target.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2}); 
+                }
+            };
+            updateCount();
+        });
+
+        // Function: Show LINE QR Code Popup
+        function showLineQR() {
+            // *** อย่าลืมเปลี่ยนลิงก์รูปตรงนี้นะครับ ***
+            const botQrImage = "https://qr-official.line.me/sid/L/941ypyyi.png"; 
+            
+            Swal.fire({
+                title: '<span class="text-white">Scan to Connect</span>',
+                html: `
+                    <div class="flex flex-col items-center gap-4 py-2">
+                        <div class="p-3 bg-white rounded-2xl relative group cursor-pointer">
+                            <div class="absolute inset-0 bg-green-500/20 animate-pulse rounded-2xl"></div>
+                            
+                            <img src="${botQrImage}" class="w-48 h-48 object-contain relative z-10" alt="Line QR">
+                        </div>
+                        
+                        <div class="text-left w-full px-4 space-y-2 mt-2">
+                            <div class="flex items-center gap-3 text-sm text-gray-400">
+                                <span class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-xs font-mono border border-gray-700">1</span>
+                                <p>สแกน QR Code เพื่อเพิ่มเพื่อน</p>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-gray-400">
+                                <span class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-xs font-mono border border-gray-700">2</span>
+                                <p>พิมพ์คำว่า <span class="text-[#06c755] font-bold bg-[#06c755]/10 px-1 rounded">/id</span> ส่งให้บอท</p>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-gray-400">
+                                <span class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-xs font-mono border border-gray-700">3</span>
+                                <p>นำรหัสที่ได้มาใส่ในช่อง User ID</p>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                background: '#0f172a',
+                showCloseButton: true,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'border border-gray-700 rounded-3xl glass-panel shadow-2xl shadow-green-900/20'
+                }
+            });
+        }
+    </script>
+</body>
+</html>

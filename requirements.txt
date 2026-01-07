@@ -1,0 +1,16 @@
+# Web Framework & Server
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+starlette==0.35.1
+jinja2==3.1.3
+
+# Environment Variables (.env)
+python-dotenv==1.0.1
+
+# HTTP Requests (Standard & High-performance)
+requests==2.31.0
+curl_cffi==0.5.10
+
+# Security & Utilities
+python-multipart==0.0.6
+itsdangerous==2.1.2

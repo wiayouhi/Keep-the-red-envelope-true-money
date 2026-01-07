@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TM Redeem - ระบบเติมเงินอัตโนมัติ Next Gen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'Kanit', 'sans-serif'],
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background: #050505; overflow-x: hidden; }
+        
+        /* Background Effects */
+        #canvas-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.6; }
+        
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1;
+        }
+
+        /* Glassmorphism Refined */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Glitch Effect */
+        .glitch { position: relative; display: inline-block; }
+        .glitch::before, .glitch::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.8;
+        }
+        .glitch::before { color: #0ff; z-index: -1; animation: glitch-anim-1 0.4s cubic-bezier(.25, .46, .45, .94) both infinite; }
+        .glitch::after { color: #f0f; z-index: -2; animation: glitch-anim-2 0.4s cubic-bezier(.25, .46, .45, .94) both infinite; }
+        @keyframes glitch-anim-1 { 0% { transform: translate(0) } 20% { transform: translate(-2px, 2px) } 40% { transform: translate(-2px, -2px) } 60% { transform: translate(2px, 2px) } 80% { transform: translate(2px, -2px) } 100% { transform: translate(0) } }
+        @keyframes glitch-anim-2 { 0% { transform: translate(0) } 20% { transform: translate(2px, -2px) } 40% { transform: translate(2px, 2px) } 60% { transform: translate(-2px, -2px) } 80% { transform: translate(-2px, 2px) } 100% { transform: translate(0) } }
+
+        /* Neon Button */
+        .btn-neon {
+            position: relative;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            z-index: 1;
+        }
+        .btn-neon::before {
+            content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6, #3b82f6);
+            z-index: -1; border-radius: 14px; filter: blur(10px); opacity: 0; transition: opacity 0.3s;
+        }
+        .btn-neon:hover::before { opacity: 1; }
+    </style>
+</head>
+<body class="text-white selection:bg-blue-500 selection:text-white">
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-[-2]">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob"></div>
+        <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-600/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-pink-600/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+    </div>
+
+    <div class="bg-grid"></div>
+
+    <canvas id="canvas-bg"></canvas>
+
+    <nav class="fixed w-full z-50 px-6 py-4 flex justify-between items-center glass border-b-0 top-0">
+        <div class="flex items-center gap-3">
+            <div class="relative w-10 h-10">
+                <div class="absolute inset-0 bg-blue-600 rounded-lg blur opacity-50"></div>
+                <div class="relative w-full h-full rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center font-bold text-lg shadow-lg">TM</div>
+            </div>
+            <span class="font-bold text-xl tracking-wider text-white">REDEEM</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <a href="#features" class="hidden md:block text-sm text-gray-400 hover:text-white transition">ฟีเจอร์</a>
+            <a href="/login" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-6 py-2 rounded-full font-semibold text-sm transition-all hover:scale-105 backdrop-blur-md">
+                เข้าสู่ระบบ
+            </a>
+        </div>
+    </nav>
+
+    <div class="min-h-screen flex items-center justify-center px-4 pt-20 relative overflow-hidden">
+        
+        <div class="absolute top-1/4 left-[10%] animate-float opacity-20 pointer-events-none">
+            <svg class="w-16 h-16 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2 1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
+        </div>
+        <div class="absolute bottom-1/4 right-[10%] animate-float opacity-20 pointer-events-none" style="animation-delay: 2s;">
+            <svg class="w-20 h-20 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+        </div>
+
+        <div class="text-center max-w-4xl w-full relative z-10">
+            <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-sm mb-8 backdrop-blur-md" data-aos="fade-down">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                <span class="font-medium tracking-wide">SYSTEM OPERATIONAL v2.0</span>
+            </div>
+
+            <h1 class="text-6xl md:text-8xl font-black mb-6 tracking-tight leading-none" data-aos="zoom-in" data-aos-delay="100">
+                AUTO <br>
+                <span class="glitch text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400" data-text="TOPUP API">TOPUP API</span>
+            </h1>
+
+            <p class="text-gray-400 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed" data-aos="fade-up" data-aos-delay="200">
+                ยกระดับธุรกิจของคุณด้วยระบบเติมเงินอัตโนมัติที่<span class="text-white font-semibold">เสถียรที่สุด</span> เชื่อมต่อ Webhook แจ้งเตือนทันที 
+                UI ล้ำสมัย รองรับทุกขนาดหน้าจอ
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-5 justify-center items-center" data-aos="fade-up" data-aos-delay="300">
+                <a href="/login" class="btn-neon px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition hover:-translate-y-1 w-full sm:w-auto text-white shadow-xl shadow-blue-500/20 group">
+                    <svg class="w-6 h-6 group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+                    <span>Discord Login</span>
+                </a>
+                <a href="#features" class="px-8 py-4 glass hover:bg-white/10 rounded-xl font-bold text-lg transition hover:-translate-y-1 w-full sm:w-auto flex items-center gap-2">
+                    <span>ดูฟีเจอร์</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <section id="stats" class="py-10 border-y border-white/5 bg-black/20 backdrop-blur-sm">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div data-aos="fade-up">
+                    <h4 class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500" id="count1">0</h4>
+                    <p class="text-sm text-blue-400 font-semibold mt-1">TRANSACTIONS</p>
+                </div>
+                <div data-aos="fade-up" data-aos-delay="100">
+                    <h4 class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500" id="count2">0</h4>
+                    <p class="text-sm text-purple-400 font-semibold mt-1">ACTIVE USERS</p>
+                </div>
+                <div data-aos="fade-up" data-aos-delay="200">
+                    <h4 class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500">99.9%</h4>
+                    <p class="text-sm text-green-400 font-semibold mt-1">UPTIME</p>
+                </div>
+                <div data-aos="fade-up" data-aos-delay="300">
+                    <h4 class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500">< 1s</h4>
+                    <p class="text-sm text-pink-400 font-semibold mt-1">RESPONSE TIME</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="py-24 px-6 relative">
+        <div class="container mx-auto">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">Why Choose Us?</h2>
+                <div class="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-card p-8 rounded-3xl group" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.5" data-aos="fade-up">
+                    <div class="w-14 h-14 bg-blue-500/20 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform duration-300 border border-blue-500/30 text-blue-400">
+                        ⚡
+                    </div>
+                    <h3 class="font-bold text-2xl mb-3 text-white">Lightning Fast</h3>
+                    <p class="text-gray-400 leading-relaxed">ระบบประมวลผล Cloud Native ตอบสนอง API Request ภายในเสี้ยววินาที ไม่ทำให้ลูกค้าต้องรอ</p>
+                </div>
+
+                <div class="glass-card p-8 rounded-3xl group" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.5" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-14 h-14 bg-purple-500/20 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform duration-300 border border-purple-500/30 text-purple-400">
+                        📱
+                    </div>
+                    <h3 class="font-bold text-2xl mb-3 text-white">Responsive Core</h3>
+                    <p class="text-gray-400 leading-relaxed">แดชบอร์ดจัดการง่าย ออกแบบ UI/UX มาเพื่อการใช้งานบนมือถือและแท็บเล็ตโดยเฉพาะ</p>
+                </div>
+
+                <div class="glass-card p-8 rounded-3xl group" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.5" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-14 h-14 bg-pink-500/20 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform duration-300 border border-pink-500/30 text-pink-400">
+                        🛡️
+                    </div>
+                    <h3 class="font-bold text-2xl mb-3 text-white">Bank-Grade Security</h3>
+                    <p class="text-gray-400 leading-relaxed">ระบบแยก API Key รายบุคคล เข้ารหัสข้อมูล 256-bit ปลอดภัย หายห่วงเรื่องข้อมูลรั่วไหล</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="text-center py-10 text-gray-600 text-sm border-t border-white/5 bg-black/40 backdrop-blur-lg">
+        <p>&copy; 2024 TM Redeem Service. All rights reserved.</p>
+        <div class="mt-4 flex justify-center gap-4">
+            <a href="#" class="hover:text-blue-400 transition">Terms</a>
+            <span class="text-gray-800">•</span>
+            <a href="#" class="hover:text-blue-400 transition">Privacy</a>
+        </div>
+    </footer>
+
+    <script>
+        // Init AOS
+        AOS.init({
+            once: true,
+            offset: 50,
+            duration: 800,
+        });
+
+        // Initialize Tilt.js
+        VanillaTilt.init(document.querySelectorAll(".glass-card"), {
+            max: 15,
+            speed: 400,
+            glare: true,
+            "max-glare": 0.1,
+        });
+
+        // Particle System Script (Refined)
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles;
+
+        function init() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            particles = [];
+            const particleCount = width < 768 ? 40 : 80; 
+            for(let i=0; i<particleCount; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    size: Math.random() * 2,
+                    alpha: Math.random() * 0.5 + 0.1
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            
+            for(let i=0; i<particles.length; i++) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Wrap around screen
+                if(p.x < 0) p.x = width;
+                if(p.x > width) p.x = 0;
+                if(p.y < 0) p.y = height;
+                if(p.y > height) p.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(147, 197, 253, ${p.alpha})`; // Light Blue color
+                ctx.fill();
+
+                // Connect lines if close
+                for(let j=i+1; j<particles.length; j++) {
+                    let p2 = particles[j];
+                    let dist = Math.sqrt((p.x-p2.x)**2 + (p.y-p2.y)**2);
+                    if(dist < 100) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(147, 197, 253, ${0.1 - dist/1000})`; 
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(draw);
+        }
+
+        // Counter Animation for Stats
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString() + "+";
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Trigger Counter when scrolled into view (Simple Intersection Observer)
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    animateValue(document.getElementById("count1"), 0, 15000, 2000);
+                    animateValue(document.getElementById("count2"), 0, 850, 2000);
+                    observer.disconnect(); // Run once
+                }
+            });
+        });
+        observer.observe(document.getElementById("stats"));
+
+        window.addEventListener('resize', init);
+        init();
+        draw();
+    </script>
+</body>
+</html>

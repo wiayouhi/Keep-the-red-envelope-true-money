@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Overseer | Admin Panel</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'grid-move': 'gridMove 20s linear infinite',
+                    },
+                    keyframes: {
+                        gridMove: {
+                            '0%': { backgroundPosition: '0 0' },
+                            '100%': { backgroundPosition: '50px 50px' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050505;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Tech Background */
+        .bg-grid {
+            background-size: 50px 50px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at 50% 0%, black 40%, transparent 100%);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1;
+            animation: gridMove 60s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Glass Panel */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Danger Button */
+        .btn-danger {
+            background: linear-gradient(45deg, #7f1d1d, #991b1b);
+            border: 1px solid #ef4444;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
+        .btn-danger:hover {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+            transform: scale(1.02);
+        }
+
+        /* Table Styling */
+        .tech-table thead tr { background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .tech-table tbody tr { transition: all 0.2s; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .tech-table tbody tr:hover { background: rgba(255, 255, 255, 0.05); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        .pointer-events-none { pointer-events: none; }
+
+        /* --- SWEETALERT CUSTOM STYLES (NEW) --- */
+        div:where(.swal2-container).swal2-backdrop-show, div:where(.swal2-container).swal2-noanimation {
+            background: rgba(0, 0, 0, 0.8) !important;
+            backdrop-filter: blur(8px) !important;
+        }
+
+        div:where(.swal2-popup) {
+            background: rgba(15, 23, 42, 0.95) !important; /* Dark Blue Slate */
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 1.5rem !important;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.02) !important;
+            padding: 2rem !important;
+        }
+
+        div:where(.swal2-title) {
+            color: #fff !important;
+            font-family: 'Outfit', sans-serif !important;
+            letter-spacing: 1px !important;
+            text-transform: uppercase !important;
+            font-size: 1.5rem !important;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        div:where(.swal2-html-container) {
+            color: #94a3b8 !important;
+            font-family: 'Outfit', sans-serif !important;
+            font-size: 1rem !important;
+            margin-top: 1rem !important;
+        }
+
+        /* Custom Icon Backgrounds */
+        .swal2-icon.swal2-warning { border-color: #f59e0b !important; color: #f59e0b !important; }
+        .swal2-icon.swal2-error { border-color: #ef4444 !important; color: #ef4444 !important; }
+        .swal2-icon.swal2-question { border-color: #8b5cf6 !important; color: #8b5cf6 !important; }
+
+        /* Action Buttons in Swal */
+        .swal2-actions { margin-top: 2rem !important; width: 100%; justify-content: space-between !important; gap: 1rem; }
+        .swal2-confirm, .swal2-cancel {
+            display: flex !important; align-items: center; justify-content: center;
+            width: 100% !important; margin: 0 !important;
+            text-transform: uppercase; letter-spacing: 1px; font-weight: 700 !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-10">
+    
+    <div class="bg-grid"></div>
+    <div class="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-red-500 z-[100]" data-aos="fade-right" data-aos-duration="1500"></div>
+
+    <nav class="sticky top-0 z-50 backdrop-blur-xl border-b border-white/5 bg-[#050505]/80" data-aos="fade-down" data-aos-duration="800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap md:flex-nowrap items-center justify-between py-4 md:h-20 gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="relative w-10 h-10 group flex-shrink-0">
+                        <div class="absolute inset-0 bg-red-600 rounded-lg blur opacity-40 group-hover:opacity-60 transition"></div>
+                        <div class="relative w-full h-full bg-gradient-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center text-white shadow-lg border border-red-400/20">
+                            <i class="fas fa-shield-cat text-lg"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white tracking-wide">OVERSEER</h1>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <p class="text-[10px] text-gray-400 font-mono tracking-widest uppercase">Admin Privileges Active</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 ml-auto md:ml-0">
+                    <a href="/dashboard" class="group flex items-center gap-2 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300 border border-transparent hover:border-white/10">
+                        <i class="fas fa-terminal text-xs group-hover:-translate-x-1 transition-transform text-violet-400"></i>
+                        <span class="text-sm font-medium hidden sm:inline-block">User View</span>
+                    </a>
+                    <button onclick="shutdownServer()" class="btn-danger flex items-center gap-2 text-white px-4 py-2 rounded-lg transition-all duration-300 group">
+                        <i class="fas fa-power-off group-hover:animate-pulse"></i> 
+                        <span class="font-bold text-xs sm:text-sm tracking-wide">KILL SWITCH</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex-grow max-w-7xl mx-auto px-4 py-6 md:py-8 w-full space-y-6 md:space-y-8">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div class="glass-panel p-5 md:p-6 rounded-2xl relative overflow-hidden group" data-tilt data-tilt-max="5" data-aos="zoom-in-up" data-aos-delay="0">
+                <div class="absolute -right-4 -top-4 text-8xl text-blue-500/5 group-hover:text-blue-500/10 transition duration-500"><i class="fas fa-users"></i></div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-blue-400 text-xs font-bold font-mono uppercase tracking-widest">Registered Users</h3>
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                        </span>
+                    </div>
+                    <p class="text-4xl font-bold text-white">{{ users_list|length }}</p>
+                    <p class="text-gray-500 text-xs mt-2">Active accounts in database</p>
+                </div>
+            </div>
+
+            <div class="glass-panel p-5 md:p-6 rounded-2xl relative overflow-hidden group" data-tilt data-tilt-max="5" data-aos="zoom-in-up" data-aos-delay="150">
+                <div class="absolute -right-4 -top-4 text-8xl text-amber-500/5 group-hover:text-amber-500/10 transition duration-500"><i class="fas fa-coins"></i></div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-amber-400 text-xs font-bold font-mono uppercase tracking-widest">Total Circulation</h3>
+                        <i class="fas fa-chart-line text-amber-500/50"></i>
+                    </div>
+                    <p class="text-4xl font-bold text-white">฿{{ "{:,.2f}".format(total_system_money) }}</p>
+                    <p class="text-gray-500 text-xs mt-2">Total accumulated value</p>
+                </div>
+            </div>
+
+            <div class="glass-panel p-5 md:p-6 rounded-2xl relative overflow-hidden group border-emerald-500/30" data-tilt data-tilt-max="5" data-aos="zoom-in-up" data-aos-delay="300">
+                <div class="absolute inset-0 bg-emerald-500/5 animate-pulse-slow"></div>
+                <div class="relative z-10 flex flex-col justify-between h-full">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-emerald-400 text-xs font-bold font-mono uppercase tracking-widest">Core Status</h3>
+                        <i class="fas fa-server text-emerald-500/50"></i>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-3xl font-bold text-white">ONLINE</div>
+                        <div class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 font-mono border border-emerald-500/20">STABLE</div>
+                    </div>
+                    <div class="w-full bg-gray-700/50 h-1 mt-4 rounded-full overflow-hidden">
+                        <div class="bg-emerald-500 h-full w-full shadow-[0_0_10px_#10b981]" style="width: 100%" data-aos="slide-right" data-aos-delay="600"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel rounded-2xl overflow-hidden flex flex-col" data-aos="fade-up" data-aos-delay="400" data-aos-duration="1000">
+            <div class="px-5 md:px-6 py-4 md:py-5 border-b border-white/5 bg-white/05 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 border border-indigo-500/20"><i class="fas fa-database"></i></div>
+                    <div>
+                        <h2 class="text-lg font-bold text-white">User Database</h2>
+                        <p class="text-xs text-gray-500 font-mono">Managed access control list</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 self-end sm:self-auto">
+                    <span class="px-3 py-1 rounded-full text-xs font-mono bg-gray-800 text-gray-300 border border-gray-700">
+                        {{ users_list|length }} Records
+                    </span>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left tech-table whitespace-nowrap">
+                    <thead>
+                        <tr class="text-gray-500 text-[11px] uppercase tracking-wider font-bold font-mono">
+                            <th class="px-4 md:px-6 py-4">User Identity</th>
+                            <th class="px-4 md:px-6 py-4">Balance</th>
+                            <th class="px-4 md:px-6 py-4">API Token</th>
+                            <th class="px-4 md:px-6 py-4">Status</th>
+                            <th class="px-4 md:px-6 py-4 text-right">Overrides</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800/50">
+                        {% for u in users_list %}
+                        <tr class="group">
+                            <td class="px-4 md:px-6 py-4">
+                                <div class="flex items-center gap-3 md:gap-4">
+                                    <div class="relative flex-shrink-0">
+                                        <img src="{{ u.avatar_url }}" class="w-8 h-8 md:w-10 md:h-10 rounded-lg ring-1 ring-white/10 group-hover:ring-violet-500/50 transition-all">
+                                        <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-[#050505] rounded-full flex items-center justify-center">
+                                            <div class="w-2 h-2 rounded-full {{ 'bg-emerald-500' if not u.is_banned else 'bg-red-500' }}"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-gray-200 group-hover:text-violet-400 transition-colors text-sm">{{ u.username }}</div>
+                                        <div class="text-[10px] text-gray-600 font-mono group-hover:text-gray-400">ID: {{ u.discord_id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 md:px-6 py-4">
+                                <div class="font-mono text-sm text-emerald-400 group-hover:text-emerald-300">
+                                    ฿{{ "{:,.2f}".format(u.total_earned) }}
+                                </div>
+                            </td>
+                            <td class="px-4 md:px-6 py-4">
+                                <button onclick="copyToClipboard('{{ u.api_key }}')" class="group/key flex items-center gap-2 px-3 py-1.5 rounded-md bg-black/30 border border-white/5 hover:border-violet-500/30 transition-colors w-fit">
+                                    <span class="text-xs font-mono text-gray-500 group-hover/key:text-gray-300 truncate max-w-[80px] md:max-w-[100px]">
+                                        {{ u.api_key[:12] }}...
+                                    </span>
+                                    <i class="fas fa-copy text-[10px] text-gray-600 group-hover/key:text-violet-400"></i>
+                                </button>
+                            </td>
+                            <td class="px-4 md:px-6 py-4">
+                                {% if u.is_banned %}
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20 font-mono tracking-wide">
+                                        RESTRICTED
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-mono tracking-wide">
+                                        GRANTED
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 md:px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2 md:opacity-60 md:group-hover:opacity-100 transition-opacity">
+                                    
+                                    <form action="/admin/reset_key" method="POST" class="inline">
+                                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                                        <button type="button" class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all flex items-center justify-center" title="Regenerate Key" onclick="confirmReset(this, '{{u.username}}')">
+                                            <i class="fas fa-sync-alt text-xs pointer-events-none"></i>
+                                        </button>
+                                    </form>
+
+                                    <form action="/admin/toggle_ban" method="POST" class="inline">
+                                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                                        {% if u.is_banned %}
+                                            <button type="submit" class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center" title="Restore Access">
+                                                <i class="fas fa-unlock text-xs pointer-events-none"></i>
+                                            </button>
+                                        {% else %}
+                                            <button type="button" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center" title="Revoke Access" onclick="confirmBan(this, '{{u.username}}')">
+                                                <i class="fas fa-ban text-xs pointer-events-none"></i>
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if users_list|length == 0 %}
+            <div class="flex flex-col items-center justify-center py-16 text-gray-600">
+                <i class="fas fa-wind text-4xl mb-4 opacity-50"></i>
+                <p class="font-mono text-sm">Database Empty</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mt-8 flex justify-center items-center gap-2 text-[10px] text-gray-600 font-mono tracking-widest opacity-50" data-aos="fade-in" data-aos-delay="800">
+            <i class="fas fa-shield-alt"></i> SECURE ADMIN ENVIRONMENT v2.0
+        </div>
+    </div>
+
+    <script>
+        // Initialize AOS Animation Library
+        AOS.init({
+            once: true, 
+            offset: 50, 
+            duration: 800, 
+            easing: 'ease-out-cubic',
+        });
+
+        // Init Tilt (Disabled on mobile for performance)
+        if(window.innerWidth > 768) {
+            VanillaTilt.init(document.querySelectorAll(".glass-panel"), {
+                max: 3,
+                speed: 400,
+                glare: true,
+                "max-glare": 0.05,
+                scale: 1.01
+            });
+        }
+
+        // Updated SweetAlert Configuration for Beautiful UI
+        const swalDark = Swal.mixin({
+            buttonsStyling: false,
+            confirmButtonClass: 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-500/30 rounded-xl px-6 py-3 transition-all transform hover:scale-[1.02]',
+            cancelButtonClass: 'bg-slate-700/50 hover:bg-slate-600 text-slate-300 border border-slate-600 rounded-xl px-6 py-3 transition-all hover:text-white',
+            showClass: {
+                popup: 'animate__animated animate__zoomIn animate__faster'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__zoomOut animate__faster'
+            }
+        });
+
+        // Shutdown Logic
+        function shutdownServer() {
+            swalDark.fire({
+                title: 'SYSTEM OVERRIDE',
+                html: "Are you sure you want to initiate the <span class='text-red-500 font-bold'>KILL SWITCH</span>?<br>All active connections will be severed.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'TERMINATE',
+                cancelButtonText: 'CANCEL',
+                confirmButtonClass: 'bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white shadow-lg shadow-red-900/50 rounded-xl px-6 py-3 font-bold tracking-widest'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch('/admin/shutdown', { method: 'POST' })
+                    .then(() => {
+                        let timerInterval
+                        Swal.fire({
+                            title: 'SYSTEM HALTING',
+                            background: '#000',
+                            html: '<div class="text-red-500 font-mono mt-4 text-xl">TERMINATION IN <b></b></div>',
+                            timer: 2000,
+                            timerProgressBar: true,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                                const b = Swal.getHtmlContainer().querySelector('b')
+                                timerInterval = setInterval(() => {
+                                    b.textContent = Swal.getTimerLeft()
+                                }, 100)
+                            },
+                            willClose: () => {
+                                clearInterval(timerInterval)
+                            }
+                        }).then(() => {
+                            window.close();
+                            document.body.innerHTML = '<div style="height:100vh;display:flex;align-items:center;justify-content:center;background:black;color:#ef4444;font-family:monospace;flex-direction:column;gap:20px;"><i class="fas fa-skull text-6xl"></i><h1 class="text-2xl">CONNECTION TERMINATED</h1></div>';
+                        })
+                    });
+                }
+            })
+        }
+
+        // Reset Key Confirmation - Beautiful UI
+        function confirmReset(btnElement, username) {
+            const form = btnElement.closest('form');
+            
+            swalDark.fire({
+                title: 'ROTATE CREDENTIALS',
+                html: `
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-2 border border-amber-500/20">
+                            <i class="fas fa-key text-2xl text-amber-500"></i>
+                        </div>
+                        <p class="text-slate-300">Regenerate API Key for</p>
+                        <span class="text-amber-400 font-bold text-xl bg-amber-500/10 px-4 py-1 rounded-lg border border-amber-500/20">${username}</span>
+                        <p class="text-xs text-slate-500 mt-2">The old key will become invalid immediately.</p>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'GENERATE NEW KEY',
+                confirmButtonClass: 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white shadow-lg shadow-amber-900/40 rounded-xl px-6 py-3 font-bold',
+            }).then((result) => {
+                if (result.isConfirmed) form.submit();
+            });
+        }
+
+        // Ban Confirmation - Beautiful UI
+        function confirmBan(btnElement, username) {
+            const form = btnElement.closest('form');
+            
+            swalDark.fire({
+                title: 'REVOKE ACCESS',
+                html: `
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-2 border border-red-500/20">
+                            <i class="fas fa-user-slash text-2xl text-red-500"></i>
+                        </div>
+                        <p class="text-slate-300">Target User</p>
+                        <span class="text-white font-bold text-xl">${username}</span>
+                        <p class="text-sm text-red-400 mt-2">Access to dashboard and API will be denied.</p>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'EXECUTE BAN',
+                confirmButtonClass: 'bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white shadow-lg shadow-red-900/40 rounded-xl px-6 py-3 font-bold',
+            }).then((result) => {
+                if (result.isConfirmed) form.submit();
+            });
+        }
+
+        // Copy Clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                background: '#0f172a',
+                color: '#fff',
+                iconColor: '#10b981',
+                customClass: {
+                    popup: 'border border-slate-700 rounded-lg shadow-xl'
+                },
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            })
+
+            Toast.fire({
+                icon: 'success',
+                title: 'Token Copied'
+            })
+        }
+    </script>
+</body>
+</html>
